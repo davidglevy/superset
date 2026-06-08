@@ -10,7 +10,8 @@ jobs:
     steps:
       - name: Send POST request to Flask endpoint
         env:
-          ID: ${{ github.event.issue.id }}
+          GLOBAL_ID: ${{ github.event.issue.id }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
           TITLE: ${{ github.event.issue.title }}
           AUTHOR: ${{ github.event.issue.user.login }}
           URL: ${{ github.event.issue.html_url }}
@@ -20,14 +21,14 @@ jobs:
         run: |
           # Use jq to safely assemble the JSON payload
           PAYLOAD=$(jq -n \
-            --arg id "$ID" \
-            --arg title "$TITLE" \
+            --argjson global_id "$GLOBAL_ID" \
+            --argjson issue_number "$ISSUE_NUMBER" \
             --arg author "$AUTHOR" \
             --arg url "$URL" \
             --arg description "$DESCRIPTION" \
             --arg created_at "$CREATED_AT" \
             --argjson labels "$LABELS" \
-            '{id: $id, title: $title, author: $author, url: $url, description: $description, created_at: $created_at, labels: $labels}')
+            '{global_id: $global_id, issue_number: $issue_number, title: $title, author: $author, url: $url, description: $description, created_at: $created_at, labels: $labels}')
           
           curl -X POST "${{ vars.API_URL }}/api/issues/opened" \
             -u "${{ secrets.NGROK_USERNAME }}:${{ secrets.NGROK_PASSWORD }}" \
