@@ -1,0 +1,20 @@
+name: Notify Devin Orchestrator on New Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  notify-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send POST request to Flask endpoint
+        run: |
+          curl -X POST "${{ vars.API_URL }}" \
+            -u "${{ secrets.NGROK_USERNAME }}:${{ secrets.NGROK_PASSWORD }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "title": "${{ github.event.issue.title }}",
+              "author": "${{ github.event.issue.user.login }}",
+              "url": "${{ github.event.issue.html_url }}"
+            }'
