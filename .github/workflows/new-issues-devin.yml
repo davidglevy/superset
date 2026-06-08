@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Send POST request to Flask endpoint
         run: |
-          curl -X POST "${{ vars.API_URL }}" \
+          curl -X POST "${{ vars.API_URL }}/api/issues/opened" \
             -u "${{ secrets.NGROK_USERNAME }}:${{ secrets.NGROK_PASSWORD }}" \
             -H "Content-Type: application/json" \
             -d '{
