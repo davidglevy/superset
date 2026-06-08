@@ -23,6 +23,7 @@ jobs:
           PAYLOAD=$(jq -n \
             --argjson global_id "$GLOBAL_ID" \
             --argjson issue_number "$ISSUE_NUMBER" \
+            --arg title "$TITLE" \
             --arg author "$AUTHOR" \
             --arg url "$URL" \
             --arg description "$DESCRIPTION" \
