@@ -18,6 +18,7 @@
  */
 import {
   buildQueryContext,
+  DatasourceType,
   ensureIsArray,
   normalizeOrderBy,
   PostProcessingPivot,
@@ -41,13 +42,32 @@ import {
   removeFormDataSuffix,
 } from '../utils/formDataSuffix';
 
+function parseSecondaryDatasource(
+  datasourceKey: string | undefined,
+): { id: number; type: DatasourceType } | undefined {
+  if (!datasourceKey || typeof datasourceKey !== 'string') return undefined;
+  const [idStr, typeStr] = datasourceKey.split('__');
+  const id = Number(idStr);
+  if (Number.isNaN(id) || !typeStr) return undefined;
+  return { id, type: typeStr as DatasourceType };
+}
+
 export default function buildQuery(formData: QueryFormData) {
   const baseFormData = {
     ...formData,
   };
 
+  const secondaryDatasource = parseSecondaryDatasource(
+    baseFormData.datasource_b as string | undefined,
+  );
+
   const formData1 = removeFormDataSuffix(baseFormData, '_b');
   const formData2 = retainFormDataSuffix(baseFormData, '_b');
+
+  // When a secondary datasource is selected, use it for Query B
+  if (secondaryDatasource) {
+    formData2.datasource = `${secondaryDatasource.id}__${secondaryDatasource.type}`;
+  }
 
   const queryContexts = [formData1, formData2].map(fd =>
     buildQueryContext(fd, baseQueryObject => {
@@ -86,8 +106,20 @@ export default function buildQuery(formData: QueryFormData) {
     }),
   );
 
-  return {
+  const result = {
     ...queryContexts[0],
     queries: [...queryContexts[0].queries, ...queryContexts[1].queries],
   };
+
+  // Attach per-query datasource for Query B when secondary datasource is set
+  if (secondaryDatasource) {
+    result.queries = result.queries.map((query, idx) => {
+      if (idx >= queryContexts[0].queries.length) {
+        return { ...query, datasource: secondaryDatasource };
+      }
+      return query;
+    });
+  }
+
+  return result;
 }
