@@ -109,6 +109,7 @@ export interface QueryObject {
   rows: number;
   tmp_table_name: string;
   tracking_url: string;
+  error_message: string | null;
 }
 
 export enum QueryObjectColumns {
@@ -131,6 +132,7 @@ export enum QueryObjectColumns {
   Rows = 'rows',
   TmpTableName = 'tmp_table_name',
   TrackingUrl = 'tracking_url',
+  ErrorMessage = 'error_message',
 }
 
 export type ImportResourceName =

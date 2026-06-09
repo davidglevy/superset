@@ -20,6 +20,7 @@ import { useState } from 'react';
 import { t } from '@apache-superset/core/translation';
 import { useTheme, styled } from '@apache-superset/core/theme';
 import cx from 'classnames';
+import { Alert } from '@apache-superset/core/components';
 import { Button, Modal } from '@superset-ui/core/components';
 import withToasts, {
   ToastProps,
@@ -106,7 +107,7 @@ function QueryPreviewModal({
 
   const [currentTab, setCurrentTab] = useState<'user' | 'executed'>('user');
 
-  const { id, sql, executed_sql } = query;
+  const { id, sql, executed_sql, error_message } = query;
   return (
     <div role="none" onKeyUp={handleKeyPress}>
       <StyledModal
@@ -145,6 +146,15 @@ function QueryPreviewModal({
       >
         <QueryTitle>{t('Tab name')}</QueryTitle>
         <QueryLabel>{query.tab_name}</QueryLabel>
+        {error_message && (
+          <Alert
+            type="error"
+            message={t('Error')}
+            description={error_message}
+            showIcon
+            style={{ marginBottom: theme.sizeUnit * 4 }}
+          />
+        )}
         <QueryViewToggle>
           <TabButton
             role="button"

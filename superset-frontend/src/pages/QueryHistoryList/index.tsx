@@ -30,7 +30,12 @@ import {
 import withToasts from 'src/components/MessageToasts/withToasts';
 import { useListViewResource } from 'src/views/CRUD/hooks';
 import SubMenu, { SubMenuProps } from 'src/features/home/SubMenu';
-import { Popover, Label, Tooltip } from '@superset-ui/core/components';
+import {
+  Popover,
+  Label,
+  Tooltip,
+  Typography,
+} from '@superset-ui/core/components';
 import { commonMenuData } from 'src/features/home/commonMenuData';
 import {
   ListView,
@@ -357,6 +362,32 @@ function QueryList({ addDangerToast }: QueryListProps) {
         Header: t('Rows'),
         size: 'sm',
         id: QueryObjectColumns.Rows,
+      },
+      {
+        accessor: QueryObjectColumns.ErrorMessage,
+        Header: t('Error message'),
+        size: 'xl',
+        Cell: ({
+          row: {
+            original: { error_message },
+          },
+        }: {
+          row: { original: QueryObject };
+        }) =>
+          error_message ? (
+            <Typography.Text
+              type="danger"
+              ellipsis={{
+                tooltip: {
+                  styles: { root: { maxWidth: '600px' } },
+                  title: error_message,
+                },
+              }}
+            >
+              {error_message}
+            </Typography.Text>
+          ) : null,
+        id: QueryObjectColumns.ErrorMessage,
       },
       {
         accessor: QueryObjectColumns.Sql,
