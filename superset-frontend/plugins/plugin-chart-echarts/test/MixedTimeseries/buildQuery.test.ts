@@ -374,3 +374,32 @@ test('ensure correct pivot columns', () => {
     },
   });
 });
+
+test('should not set per-query datasource without datasource_b', () => {
+  const result = buildQuery(formDataMixedChart);
+  expect(result.queries[0]).not.toHaveProperty('datasource');
+  expect(result.queries[1]).not.toHaveProperty('datasource');
+});
+
+test('should set per-query datasource on Query B when datasource_b is set', () => {
+  const formDataWithSecondary = {
+    ...formDataMixedChart,
+    datasource_b: '42__table',
+  };
+  const result = buildQuery(formDataWithSecondary);
+  // Query A should not have a per-query datasource
+  expect(result.queries[0]).not.toHaveProperty('datasource');
+  // Query B should have the secondary datasource
+  expect(result.queries[1]).toHaveProperty('datasource');
+  expect(result.queries[1].datasource).toEqual({ id: 42, type: 'table' });
+});
+
+test('should handle invalid datasource_b gracefully', () => {
+  const formDataWithBadDs = {
+    ...formDataMixedChart,
+    datasource_b: 'invalid',
+  };
+  const result = buildQuery(formDataWithBadDs);
+  expect(result.queries[0]).not.toHaveProperty('datasource');
+  expect(result.queries[1]).not.toHaveProperty('datasource');
+});

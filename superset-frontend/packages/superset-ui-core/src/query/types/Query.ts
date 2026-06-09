@@ -146,6 +146,9 @@ export interface QueryObject
 
   custom_params?: JsonObject;
 
+  /** Optional per-query datasource override (structured or string key) */
+  datasource?: string | { id: number; type: DatasourceType };
+
   /** Free-form WHERE SQL: multiple clauses are concatenated by AND */
   where?: string;
 

@@ -23,15 +23,19 @@ import {
   ControlPanelsContainerProps,
   ControlPanelConfig,
   ControlPanelSectionConfig,
+  ControlPanelState,
   ControlSetRow,
+  ControlState,
   ControlSubSectionHeader,
   CustomControlItem,
+  Dataset,
   getStandardizedControls,
   sections,
   sharedControls,
   DEFAULT_SORT_SERIES_DATA,
   SORT_SERIES_CHOICES,
 } from '@superset-ui/chart-controls';
+import SecondaryDatasourceControl from './SecondaryDatasourceControl';
 
 import { DEFAULT_FORM_DATA } from './types';
 import { EchartsTimeseriesSeriesType } from '../Timeseries/types';
@@ -63,30 +67,143 @@ const {
   yAxisIndex,
 } = DEFAULT_FORM_DATA;
 
+function getSecondaryDatasource(
+  state: ControlPanelState,
+): { columns: Dataset['columns']; metrics: Dataset['metrics'] } | null {
+  const data = state.controls?.datasource_b_data?.value;
+  if (data && typeof data === 'object' && 'columns' in data) {
+    return data as { columns: Dataset['columns']; metrics: Dataset['metrics'] };
+  }
+  return null;
+}
+
+function secondaryDatasourceMapStateToProps(
+  base: typeof sharedControls.metrics,
+  kind: 'metrics' | 'groupby' | 'filters' | 'sort',
+) {
+  return {
+    ...base,
+    mapStateToProps: (
+      state: ControlPanelState,
+      controlState: ControlState,
+      chart: Record<string, unknown>,
+    ) => {
+      const baseProps =
+        base.mapStateToProps?.(state, controlState, chart) ?? {};
+      const secondaryDs = getSecondaryDatasource(state);
+      if (!secondaryDs) return baseProps;
+
+      if (kind === 'metrics' || kind === 'sort') {
+        return {
+          ...baseProps,
+          columns: secondaryDs.columns ?? [],
+          savedMetrics: secondaryDs.metrics ?? [],
+          datasource: undefined,
+        };
+      }
+      if (kind === 'groupby') {
+        const cols = (secondaryDs.columns ?? []).filter(
+          (c: Record<string, unknown>) => c.groupby,
+        );
+        return {
+          ...baseProps,
+          options: cols,
+          savedMetrics: secondaryDs.metrics ?? [],
+        };
+      }
+      if (kind === 'filters') {
+        const cols = (secondaryDs.columns ?? []).filter(
+          (c: Record<string, unknown>) => c.filterable,
+        );
+        return {
+          ...baseProps,
+          columns: cols,
+          savedMetrics: secondaryDs.metrics ?? [],
+          datasource: undefined,
+        };
+      }
+      return baseProps;
+    },
+    shouldMapStateToProps: (
+      prevState: ControlPanelState,
+      state: ControlPanelState,
+    ) =>
+      prevState?.controls?.datasource_b?.value !==
+        state?.controls?.datasource_b?.value ||
+      prevState?.controls?.datasource_b_data?.value !==
+        state?.controls?.datasource_b_data?.value ||
+      prevState?.datasource !== state?.datasource,
+  };
+}
+
 function createQuerySection(
   label: string,
   controlSuffix: string,
 ): ControlPanelSectionConfig {
+  const useSecondaryDs = controlSuffix === '_b';
   return {
     label,
     expanded: true,
     controlSetRows: [
+      ...(useSecondaryDs
+        ? [
+            [
+              {
+                name: 'datasource_b',
+                config: {
+                  type: SecondaryDatasourceControl,
+                  label: t('Secondary dataset'),
+                  description: t(
+                    'Optionally select a different dataset for Query B. ' +
+                      'When set, Query B will use this dataset instead of the primary one.',
+                  ),
+                  default: undefined,
+                  renderTrigger: false,
+                },
+              },
+            ] as ControlSetRow,
+            [
+              {
+                name: 'datasource_b_data',
+                config: {
+                  type: 'HiddenControl',
+                  default: null,
+                },
+              },
+            ] as ControlSetRow,
+          ]
+        : []),
       [
         {
           name: `metrics${controlSuffix}`,
-          config: sharedControls.metrics,
+          config: useSecondaryDs
+            ? secondaryDatasourceMapStateToProps(
+                sharedControls.metrics,
+                'metrics',
+              )
+            : sharedControls.metrics,
         },
       ],
       [
         {
           name: `groupby${controlSuffix}`,
-          config: sharedControls.groupby,
+          config: useSecondaryDs
+            ? secondaryDatasourceMapStateToProps(
+                sharedControls.groupby,
+                'groupby',
+              )
+            : sharedControls.groupby,
         },
       ],
       [
         {
           name: `adhoc_filters${controlSuffix}`,
-          config: sharedControls.adhoc_filters,
+          config: useSecondaryDs
+            ? secondaryDatasourceMapStateToProps(
+                sharedControls.adhoc_filters,
+                'filters',
+              )
+            : sharedControls.adhoc_filters,
         },
       ],
       [
@@ -98,7 +215,12 @@ function createQuerySection(
       [
         {
           name: `timeseries_limit_metric${controlSuffix}`,
-          config: sharedControls.timeseries_limit_metric,
+          config: useSecondaryDs
+            ? secondaryDatasourceMapStateToProps(
+                sharedControls.timeseries_limit_metric,
+                'sort',
+              )
+            : sharedControls.timeseries_limit_metric,
         },
       ],
       [
