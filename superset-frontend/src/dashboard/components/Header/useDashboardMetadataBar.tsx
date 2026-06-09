@@ -17,14 +17,36 @@
  * under the License.
  */
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { t } from '@apache-superset/core/translation';
-import { DashboardInfo } from 'src/dashboard/types';
+import { DashboardInfo, RootState } from 'src/dashboard/types';
 import MetadataBar, {
   MetadataType,
 } from '@superset-ui/core/components/MetadataBar';
 import getOwnerName from 'src/utils/getOwnerName';
 
+function getUserAccessRole(
+  dashboardInfo: DashboardInfo,
+  userId: number | undefined,
+): string {
+  if (!userId) {
+    return t('Viewer');
+  }
+  const isOwner = dashboardInfo.owners.some(owner => owner.id === userId);
+  if (isOwner) {
+    return t('Owner');
+  }
+  if (dashboardInfo.dash_edit_perm) {
+    return t('Can edit');
+  }
+  return t('Viewer');
+}
+
 export const useDashboardMetadataBar = (dashboardInfo: DashboardInfo) => {
+  const userId = useSelector<RootState, number | undefined>(
+    state => state.user?.userId,
+  );
+
   const items = useMemo(
     () => [
       {
@@ -32,6 +54,14 @@ export const useDashboardMetadataBar = (dashboardInfo: DashboardInfo) => {
         value: dashboardInfo.changed_on_delta_humanized,
         modifiedBy:
           getOwnerName(dashboardInfo.changed_by) || t('Not available'),
+      },
+      {
+        type: MetadataType.Permission as const,
+        role: getUserAccessRole(dashboardInfo, userId),
+        owners:
+          dashboardInfo.owners.length > 0
+            ? dashboardInfo.owners.map(getOwnerName)
+            : t('None'),
       },
       {
         type: MetadataType.Owner as const,
@@ -48,7 +78,9 @@ export const useDashboardMetadataBar = (dashboardInfo: DashboardInfo) => {
       dashboardInfo.changed_on_delta_humanized,
       dashboardInfo.created_by,
       dashboardInfo.created_on_delta_humanized,
+      dashboardInfo.dash_edit_perm,
       dashboardInfo.owners,
+      userId,
     ],
   );
 
