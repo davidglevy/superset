@@ -22,6 +22,7 @@ export enum MetadataType {
   Description = 'description',
   LastModified = 'lastModified',
   Owner = 'owner',
+  Permission = 'permission',
   Rows = 'rows',
   Sql = 'sql',
   Table = 'table',
@@ -74,6 +75,13 @@ export type Table = {
   onClick?: (type: string) => void;
 };
 
+export type Permission = {
+  type: MetadataType.Permission;
+  role: string;
+  owners?: string[] | string;
+  onClick?: (type: string) => void;
+};
+
 export type Tags = {
   type: MetadataType.Tags;
   values: string[];
@@ -85,6 +93,7 @@ export type ContentType =
   | Description
   | LastModified
   | Owner
+  | Permission
   | Rows
   | Sql
   | Table

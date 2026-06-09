@@ -120,6 +120,20 @@ const config = (contentType: ContentType) => {
         tooltip: contentType.title,
       };
 
+    case MetadataType.Permission:
+      return {
+        icon: Icons.LockOutlined,
+        title: contentType.role,
+        tooltip: (
+          <div>
+            <Info header={t('Your access')} text={contentType.role} />
+            {!!contentType.owners && (
+              <Info header={t('Owners')} text={contentType.owners} />
+            )}
+          </div>
+        ),
+      };
+
     case MetadataType.Tags:
       return {
         icon: Icons.TagsOutlined,

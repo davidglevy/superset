@@ -34,6 +34,7 @@ export const ORDER = {
   rows: 3,
   tags: 4,
   description: 5,
-  owner: 6,
-  lastModified: 7,
+  permission: 6,
+  owner: 7,
+  lastModified: 8,
 };
