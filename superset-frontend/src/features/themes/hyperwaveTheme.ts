@@ -16,7 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import type { SerializableThemeConfig } from '@apache-superset/core/theme';
+import {
+  ThemeAlgorithm,
+  type SerializableThemeConfig,
+} from '@apache-superset/core/theme';
 
 const HYPERWAVE_STORAGE_KEY = 'superset-hyperwave-enabled';
 
@@ -31,7 +34,7 @@ export const hyperwaveTheme: SerializableThemeConfig = {
     colorBgBase: '#0f0a1e',
     colorTextBase: '#e2e0f0',
   },
-  algorithm: 'dark',
+  algorithm: ThemeAlgorithm.DARK,
 };
 
 export function isHyperwaveEnabled(): boolean {

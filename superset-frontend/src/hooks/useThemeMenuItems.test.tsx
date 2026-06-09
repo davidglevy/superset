@@ -259,9 +259,9 @@ describe('useThemeMenuItems', () => {
     await userEvent.hover(await screen.findByRole('menuitem'));
 
     const menu = await findMenuWithText('Clear local theme');
-    const divider = within(menu).queryByRole('separator');
+    const dividers = within(menu).queryAllByRole('separator');
 
-    expect(divider).toBeInTheDocument();
+    expect(dividers.length).toBeGreaterThanOrEqual(1);
   });
 
   test('renders Hyperwave toggle option', async () => {
