@@ -744,7 +744,9 @@ export function exploreJSON(
     const logStart = Logger.getTimestamp();
     const controller = new AbortController();
     const prevController = key ? state.charts?.[key]?.queryController : null;
-    const chartDataTimeout = state.common.conf.CHART_DATA_TIMEOUT;
+    const chartDataTimeout = state.common.conf.CHART_DATA_TIMEOUT as
+      | number
+      | undefined;
     const queryTimeout =
       timeout ||
       (chartDataTimeout ? chartDataTimeout + 5 : 0) ||
