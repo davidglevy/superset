@@ -169,6 +169,7 @@ const RightMenu = ({
     hasDevOverride,
     canSetMode,
     canDetectOSPreference,
+    setTemporaryTheme,
   } = useThemeContext();
   const dropdownItems: MenuObjectProps[] = [
     {
@@ -365,6 +366,8 @@ const RightMenu = ({
     hasLocalOverride: hasDevOverride(),
     onClearLocalSettings: clearLocalOverrides,
     allowOSPreference: canDetectOSPreference(),
+    setTemporaryTheme,
+    clearLocalOverrides,
   });
 
   const languageMenuItem = useLanguageMenuItems({
@@ -590,9 +593,7 @@ const RightMenu = ({
       });
     }
 
-    if (canSetMode()) {
-      items.push(themeMenuItem);
-    }
+    items.push(themeMenuItem);
 
     if (navbarRight.show_language_picker && languageMenuItem) {
       items.push(languageMenuItem);

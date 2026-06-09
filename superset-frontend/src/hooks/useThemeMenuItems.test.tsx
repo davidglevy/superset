@@ -264,12 +264,12 @@ describe('useThemeMenuItems', () => {
     expect(divider).toBeInTheDocument();
   });
 
-  test('does not render divider when clear option is not present', async () => {
+  test('renders Hyperwave toggle option', async () => {
     renderThemeMenu({ ...defaultProps });
 
     await userEvent.hover(await screen.findByRole('menuitem'));
-    const divider = document.querySelector('.ant-menu-item-divider');
+    const menu = await findMenuWithText('Hyperwave');
 
-    expect(divider).toBeNull();
+    expect(within(menu).getByText('Hyperwave')).toBeInTheDocument();
   });
 });
