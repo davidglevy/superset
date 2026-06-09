@@ -96,6 +96,7 @@ from superset.exceptions import (
     SupersetErrorsException,
     SupersetSecurityException,
     SupersetSyntaxErrorException,
+    SupersetTimeoutException,
 )
 from superset.extensions import feature_flag_manager
 from superset.jinja_context import BaseTemplateProcessor
@@ -1485,6 +1486,10 @@ class ExploreMixin:  # pylint: disable=too-many-public-methods
 
         This method is the unified entry point for query execution across all
         datasource types (Query, SqlaTable, etc.).
+
+        Server-side timeout is enforced via the CHART_DATA_TIMEOUT config
+        (default 30 s). When the timeout fires a SupersetTimeoutException is
+        raised so the API layer can return a clear error to the client.
         """
         qry_start_dttm = datetime.now()
         query_str_ext = self.get_query_str_extended(query_obj)
@@ -1520,12 +1525,17 @@ class ExploreMixin:  # pylint: disable=too-many-public-methods
             return df
 
         try:
-            df = self.database.get_df(
-                sql,
-                self.catalog,
-                self.schema,
-                mutator=assign_column_label,
-            )
+            timeout = app.config.get("CHART_DATA_TIMEOUT", 30)
+            timeout_msg = f"Chart data query exceeded the {timeout} seconds timeout."
+            with utils.timeout(seconds=timeout, error_message=timeout_msg):
+                df = self.database.get_df(
+                    sql,
+                    self.catalog,
+                    self.schema,
+                    mutator=assign_column_label,
+                )
+        except SupersetTimeoutException:
+            raise
         except Exception as ex:  # pylint: disable=broad-except
             # Re-raise SupersetErrorException (includes OAuth2RedirectError)
             # to bubble up to API layer
