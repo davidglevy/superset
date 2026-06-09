@@ -16,12 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Icons, Tooltip } from '@superset-ui/core/components';
 import type { MenuItem } from '@superset-ui/core/components/Menu';
 import { t } from '@apache-superset/core/translation';
-import { ThemeMode, ThemeAlgorithm } from '@apache-superset/core/theme';
+import {
+  ThemeMode,
+  ThemeAlgorithm,
+  type AnyThemeConfig,
+} from '@apache-superset/core/theme';
 import { NAVBAR_MENU_POPUP_OFFSET } from 'src/features/home/commonMenuData';
+import {
+  hyperwaveTheme,
+  isHyperwaveEnabled,
+  setHyperwaveEnabled,
+} from 'src/features/themes/hyperwaveTheme';
 
 export interface ThemeSubMenuOption {
   key: ThemeMode;
@@ -36,6 +45,8 @@ export interface ThemeSubMenuProps {
   hasLocalOverride?: boolean;
   onClearLocalSettings?: () => void;
   allowOSPreference?: boolean;
+  setTemporaryTheme?: (config: AnyThemeConfig, themeId?: number | null) => void;
+  clearLocalOverrides?: () => void;
 }
 
 export const useThemeMenuItems = ({
@@ -44,10 +55,30 @@ export const useThemeMenuItems = ({
   hasLocalOverride = false,
   onClearLocalSettings,
   allowOSPreference = true,
+  setTemporaryTheme,
+  clearLocalOverrides,
 }: ThemeSubMenuProps): MenuItem => {
+  const [hyperwaveActive, setHyperwaveActive] = useState(isHyperwaveEnabled);
+
   const handleSelect = (mode: ThemeMode) => {
+    if (hyperwaveActive) {
+      setHyperwaveActive(false);
+      setHyperwaveEnabled(false);
+    }
     setThemeMode(mode);
   };
+
+  const handleHyperwaveToggle = useCallback(() => {
+    const newState = !hyperwaveActive;
+    setHyperwaveActive(newState);
+    setHyperwaveEnabled(newState);
+
+    if (newState && setTemporaryTheme) {
+      setTemporaryTheme(hyperwaveTheme);
+    } else if (!newState && clearLocalOverrides) {
+      clearLocalOverrides();
+    }
+  }, [hyperwaveActive, setTemporaryTheme, clearLocalOverrides]);
 
   const themeIconMap: Record<ThemeAlgorithm | ThemeMode, React.ReactNode> =
     useMemo(
@@ -130,6 +161,24 @@ export const useThemeMenuItems = ({
       label: t('Theme'),
       key: 'theme-group',
       children: themeGroupOptions,
+    },
+    { type: 'divider' as const, key: 'hyperwave-divider' },
+    {
+      type: 'group' as const,
+      label: t('Color Scheme'),
+      key: 'color-scheme-group',
+      children: [
+        {
+          key: 'hyperwave-toggle',
+          label: (
+            <>
+              <Icons.ThunderboltOutlined />{' '}
+              {hyperwaveActive ? t('Disable Hyperwave') : t('Hyperwave')}
+            </>
+          ),
+          onClick: handleHyperwaveToggle,
+        },
+      ],
     },
   ];
 

@@ -259,17 +259,17 @@ describe('useThemeMenuItems', () => {
     await userEvent.hover(await screen.findByRole('menuitem'));
 
     const menu = await findMenuWithText('Clear local theme');
-    const divider = within(menu).queryByRole('separator');
+    const dividers = within(menu).queryAllByRole('separator');
 
-    expect(divider).toBeInTheDocument();
+    expect(dividers.length).toBeGreaterThanOrEqual(1);
   });
 
-  test('does not render divider when clear option is not present', async () => {
+  test('renders Hyperwave toggle option', async () => {
     renderThemeMenu({ ...defaultProps });
 
     await userEvent.hover(await screen.findByRole('menuitem'));
-    const divider = document.querySelector('.ant-menu-item-divider');
+    const menu = await findMenuWithText('Hyperwave');
 
-    expect(divider).toBeNull();
+    expect(within(menu).getByText('Hyperwave')).toBeInTheDocument();
   });
 });
