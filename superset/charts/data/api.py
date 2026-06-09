@@ -56,7 +56,11 @@ from superset.constants import (
     EXTRA_FORM_DATA_OVERRIDE_REGULAR_MAPPINGS,
 )
 from superset.daos.exceptions import DatasourceNotFound
-from superset.exceptions import QueryObjectValidationError, SupersetSecurityException
+from superset.exceptions import (
+    QueryObjectValidationError,
+    SupersetSecurityException,
+    SupersetTimeoutException,
+)
 from superset.extensions import event_logger
 from superset.models.sql_lab import Query
 from superset.utils import json
@@ -596,6 +600,8 @@ class ChartDataRestApi(ChartRestApi):
             result = command.run(force_cached=force_cached)
         except ChartDataCacheLoadError as exc:
             return self.response_422(message=exc.message)
+        except SupersetTimeoutException as exc:
+            return self.response(408, message=exc.message)
         except ChartDataQueryFailedError as exc:
             return self.response_400(message=exc.message)
 

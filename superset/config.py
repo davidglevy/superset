@@ -1468,6 +1468,11 @@ DEFAULT_DB_ID = None
 # Timeout duration for SQL Lab synchronous queries
 SQLLAB_TIMEOUT = int(timedelta(seconds=30).total_seconds())
 
+# Timeout duration for chart data queries (Explore / Dashboard).
+# Applies server-side to each chart query executed through the /api/v1/chart/data
+# endpoint. Set to 0 to disable (not recommended).
+CHART_DATA_TIMEOUT = int(timedelta(seconds=30).total_seconds())
+
 # BigQuery max fetch size in MB (limits memory usage when fetching large results)
 BQ_FETCH_MAX_MB = 200
 
