@@ -19,9 +19,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '@apache-superset/core/translation';
 import { SupersetClient, JsonResponse } from '@superset-ui/core';
-import ControlHeader from 'src/explore/components/ControlHeader';
 import { Select, type SelectOptionsType } from '@superset-ui/core/components';
-import type { ExploreActions } from 'src/explore/actions/exploreActions';
 
 interface DatasourceOption {
   id: number;
@@ -31,13 +29,9 @@ interface DatasourceOption {
 }
 
 interface SecondaryDatasourceControlProps {
-  actions: Pick<ExploreActions, 'setControlValue'>;
+  actions: { setControlValue: (key: string, value: unknown) => void };
   onChange: (value: string | undefined) => void;
   value?: string;
-  label?: string;
-  description?: string;
-  hovered?: boolean;
-  name?: string;
 }
 
 const DATASOURCE_API_PAGE_SIZE = 100;
@@ -46,7 +40,6 @@ const SecondaryDatasourceControl = ({
   actions,
   onChange,
   value,
-  ...headerProps
 }: SecondaryDatasourceControlProps) => {
   const [options, setOptions] = useState<SelectOptionsType>([]);
   const [loaded, setLoaded] = useState(false);
@@ -134,7 +127,6 @@ const SecondaryDatasourceControl = ({
 
   return (
     <div>
-      <ControlHeader {...headerProps} />
       <Select
         allowClear
         ariaLabel={t('Secondary dataset')}
